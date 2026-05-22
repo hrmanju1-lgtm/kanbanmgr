@@ -16,7 +16,7 @@ boardRouter.get('/', async (req: Request, res: Response) => {
       swimlanes: {
         orderBy: { position: 'asc' },
         include: {
-          reportee: true,
+          reportee: { include: { interactions: { orderBy: { occurredAt: 'desc' }, take: 3, select: { sentiment: true } } } },
           cards: {
             where: {
               OR: [

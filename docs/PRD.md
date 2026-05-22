@@ -46,7 +46,7 @@ ManagerFlow is a purpose-built visual workflow dashboard for IT Line Managers wh
 | F6 | Health Indicators | Green/Yellow/Red dots based on days since last 1-on-1 |
 | F7 | Card Detail Panel | Notes, action items, source info, due date management |
 | F8 | 1-on-1 Notes | Log meetings with notes, sentiment, action items → auto-generate cards |
-| F9 | Needs Attention | Dashboard section showing overdue cards + stale reportees (>14 days) |
+| F9 | Today's Focus (Smart Nudges) | Prioritized daily nudges: overdue tasks, due today/tomorrow, unacknowledged, stale reportees, stuck in Waiting >5d, sentiment concern (3 consecutive) |
 | F10 | Notification Bell | Live polling (5s) for pushed tasks with card highlighting |
 | F11 | Authentication | Email/password JWT auth with admin/senior_manager/line_manager roles |
 | F12 | Team Dashboard | Role-aware view with "Show completed" toggle; privacy-respecting |
@@ -80,7 +80,7 @@ ManagerFlow
 ├── Manager View (senior_manager / line_manager)
 │   ├── Header (view toggle, notifications, username, logout)
 │   ├── My Board
-│   │   ├── Widgets Bar + Needs Attention
+│   │   ├── Widgets Bar + Today's Focus (smart nudges)
 │   │   ├── Kanban Board (4 columns × N swimlanes)
 │   │   └── Card Detail Panel
 │   └── Team Dashboard
@@ -120,7 +120,8 @@ ManagerFlow
 - Team Dashboard with privacy (Senior Manager can't see team-level tasks)
 - Admin Panel with full org structure CRUD and auto-provisioning
 - External Push API with bulk broadcast
-- Needs Attention section (overdue + stale reportees)
+- Today's Focus smart nudges (overdue, due soon, unacknowledged, stale reportees, stuck in Waiting, sentiment concern alerts)
+- Sentiment tracking: 3 consecutive "concern" sentiments triggers a nudge
 - Widgets bar with 6 metrics
 
 **Out of scope:**

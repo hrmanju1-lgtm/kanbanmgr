@@ -52,7 +52,7 @@ kanban_mgr/
 │           │   ├── Login.tsx        # Login form
 │           │   ├── NotificationBell.tsx # Bell + dropdown
 │           │   ├── TeamDashboard.tsx # Role-aware team view
-│           │   └── Widgets.tsx      # Stats bar + needs attention
+│           │   └── Widgets.tsx      # Stats bar + Today's Focus nudges
 │           ├── App.tsx             # Root: auth routing
 │           └── main.tsx
 ├── prisma/
@@ -225,7 +225,24 @@ GET  /api/v1/tasks/:cardId/status → { cardId, acknowledged, acknowledgedAt, cu
 - Frontend: polls every 5s, filters read IDs via localStorage
 - Click → highlights card on board (3s pulse)
 
-### 5.6 Auto-Provisioning (Admin)
+### 5.6 Today's Focus (Smart Nudges)
+```
+Computed client-side from board data. Shows top 5 prioritized nudges:
+
+| Priority | Nudge | Trigger |
+|----------|-------|---------|
+| 1 | 📥 Unacknowledged tasks | Pushed cards still in To Do |
+| 2 | 🔥 Overdue | Past due date |
+| 3 | ⏰ Due today/tomorrow | Due within 24h |
+| 3 | 😟 Sentiment concern | Last 3 interactions all "concern" |
+| 4 | 🔴 Stale reportees | >14 days since 1-on-1 |
+| 5 | ⏳ Stuck in Waiting | In Waiting >5 days |
+
+Board API includes reportee.interactions (last 3, sentiment only) for concern detection.
+Disappears when nothing needs attention.
+```
+
+### 5.7 Auto-Provisioning (Admin)
 - Create Senior Manager → Board + org/unit/team swimlanes
 - Create Line Manager → Board + org/unit/team swimlanes + person swimlane on SM's board
 - Create Reportee → Person swimlane on LM's board

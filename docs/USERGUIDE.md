@@ -83,7 +83,9 @@ Click any card to open the detail panel:
 
 ---
 
-## 7. Widgets Bar
+## 7. Widgets Bar & Today's Focus
+
+### Metrics Grid
 
 | Widget | Shows |
 |--------|-------|
@@ -94,8 +96,20 @@ Click any card to open the detail panel:
 | ✏️ Team Level (blue) | Active self-created tasks |
 | ⏳ Unacknowledged (yellow) | Pushed tasks still in "To Do" |
 
-### ⚠️ Needs Attention
-Red alert section showing overdue cards and stale reportees. Disappears when everything is healthy.
+### 🎯 Today's Focus
+
+A prioritized list of up to 5 nudges telling you what to act on right now:
+
+| Icon | Nudge | When It Appears |
+|------|-------|-----------------|
+| 📥 | Unacknowledged tasks | Pushed tasks you haven't started |
+| 🔥 | Overdue task | Past due date |
+| ⏰ | Due today/tomorrow | Due within 24 hours |
+| 😟 | Sentiment concern | Last 3 meetings with a reportee all flagged "Concern" |
+| 🔴 | Stale reportee | >14 days since last 1-on-1 |
+| ⏳ | Stuck in Waiting | Card in Waiting column for >5 days |
+
+Disappears when there's nothing to focus on. No configuration needed — auto-generated from your board data.
 
 ---
 

@@ -6,19 +6,57 @@ export default function Widgets() {
 
   if (!board) return null;
 
+  const now = Date.now();
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(23, 59, 59, 999);
+
   const allCards = board.swimlanes.flatMap((s: any) => s.cards);
-  const overdueCards = allCards.filter((c: any) => c.dueDate && new Date(c.dueDate) < new Date() && c.status !== 'done');
-  const orgLevel = allCards.filter((c: any) => c.source === 'organization' && c.status !== 'done').length;
-  const unitLevel = allCards.filter((c: any) => c.source === 'unit_manager' && c.status !== 'done').length;
-  const teamLevel = allCards.filter((c: any) => (!c.source || c.source === 'self') && c.status !== 'done').length;
-  const unacked = allCards.filter((c: any) => c.source && c.source !== 'self' && !c.acknowledgedAt).length;
+  const activeCards = allCards.filter((c: any) => c.status !== 'done');
+  const overdueCards = activeCards.filter((c: any) => c.dueDate && new Date(c.dueDate) < new Date());
+  const orgLevel = activeCards.filter((c: any) => c.source === 'organization').length;
+  const unitLevel = activeCards.filter((c: any) => c.source === 'unit_manager').length;
+  const teamLevel = activeCards.filter((c: any) => !c.source || c.source === 'self').length;
+  const unacked = activeCards.filter((c: any) => c.source && c.source !== 'self' && !c.acknowledgedAt).length;
 
   const staleReportees = board.swimlanes
     .filter((s: any) => s.type === 'person' && s.reportee)
-    .map((s: any) => ({ name: s.title, days: s.reportee.last1on1Date ? Math.floor((Date.now() - new Date(s.reportee.last1on1Date).getTime()) / 86400000) : 999 }))
+    .map((s: any) => ({ name: s.title, days: s.reportee.last1on1Date ? Math.floor((now - new Date(s.reportee.last1on1Date).getTime()) / 86400000) : 999 }))
     .filter((r: any) => r.days > 14);
 
-  const needsAttention = overdueCards.length > 0 || staleReportees.length > 0;
+  // --- Today's Focus: generate nudges ---
+  const nudges: { icon: string; text: string; priority: number }[] = [];
+
+  const unackedCards = activeCards.filter((c: any) => c.source && c.source !== 'self' && !c.acknowledgedAt);
+  if (unackedCards.length > 0) {
+    nudges.push({ icon: '📥', text: `${unackedCards.length} unacknowledged task${unackedCards.length > 1 ? 's' : ''} — review and start`, priority: 1 });
+  }
+
+  overdueCards.forEach((c: any) => {
+    const days = Math.floor((now - new Date(c.dueDate).getTime()) / 86400000);
+    nudges.push({ icon: '🔥', text: `"${c.title}" is ${days}d overdue`, priority: 2 });
+  });
+
+  activeCards.filter((c: any) => c.dueDate && new Date(c.dueDate) > new Date() && new Date(c.dueDate) <= tomorrow).forEach((c: any) => {
+    nudges.push({ icon: '⏰', text: `"${c.title}" is due ${new Date(c.dueDate).toDateString() === new Date().toDateString() ? 'today' : 'tomorrow'}`, priority: 3 });
+  });
+
+  staleReportees.forEach((r: any) => {
+    nudges.push({ icon: '🔴', text: `${r.name} — no 1-on-1 in ${r.days} days`, priority: 4 });
+  });
+
+  activeCards.filter((c: any) => c.status === 'waiting' && c.createdAt).forEach((c: any) => {
+    const days = Math.floor((now - new Date(c.createdAt).getTime()) / 86400000);
+    if (days > 5) nudges.push({ icon: '⏳', text: `"${c.title}" stuck in Waiting for ${days}d`, priority: 5 });
+  });
+
+  // Reportees with last 3 sentiments all "concern"
+  board.swimlanes
+    .filter((s: any) => s.type === 'person' && s.reportee?.interactions?.length >= 3)
+    .forEach((s: any) => {
+      const allConcern = s.reportee.interactions.every((i: any) => i.sentiment === 'concern');
+      if (allConcern) nudges.push({ icon: '😟', text: `${s.title} — concern flagged in last 3 meetings`, priority: 3 });
+    });
+
+  const topNudges = nudges.sort((a, b) => a.priority - b.priority).slice(0, 5);
 
   return (
     <div className="px-6 py-4 space-y-3">
@@ -49,23 +87,17 @@ export default function Widgets() {
         </div>
       </div>
 
-      {needsAttention && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-red-800 mb-2">⚠️ Needs Attention</h3>
-          <div className="flex flex-wrap gap-3">
-            {overdueCards.map((c: any) => (
-              <span key={c.id} className="inline-flex items-center gap-1 bg-white border border-red-200 rounded-full px-3 py-1 text-xs text-red-700">
-                📅 <span className="font-medium truncate max-w-[200px]">{c.title}</span>
-                <span className="text-red-400">({Math.floor((Date.now() - new Date(c.dueDate).getTime()) / 86400000)}d overdue)</span>
-              </span>
+      {topNudges.length > 0 && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-indigo-800 mb-2">🎯 Today's Focus</h3>
+          <ul className="space-y-1.5">
+            {topNudges.map((n, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm text-indigo-900">
+                <span>{n.icon}</span>
+                <span>{n.text}</span>
+              </li>
             ))}
-            {staleReportees.map((r: any) => (
-              <span key={r.name} className="inline-flex items-center gap-1 bg-white border border-red-200 rounded-full px-3 py-1 text-xs text-red-700">
-                👤 <span className="font-medium">{r.name}</span>
-                <span className="text-red-400">(no 1-on-1 in {r.days}d)</span>
-              </span>
-            ))}
-          </div>
+          </ul>
         </div>
       )}
     </div>

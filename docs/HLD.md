@@ -114,6 +114,7 @@
 | Auto-acknowledge | Card moved from To Do → acknowledgedAt set | Status change |
 | 1-on-1 logged | UI → POST /api/people/:id/interactions → health resets | User action |
 | Notification poll | Frontend → GET /api/notifications | 5s interval |
+| Today's Focus nudges | Frontend computes from board data (overdue, due soon, unacked, stale, stuck, sentiment) | On board load |
 | Admin creates manager | POST /api/admin/* → auto-provisions board + swimlanes | Admin action |
 
 ---
