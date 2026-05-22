@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Manager {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  name            String
+  passwordHash    String
+  orgUnit         String?
+  role            String   @default("line_manager") // 'admin' | 'senior_manager' | 'line_manager'
+  seniorManagerId String?
+  lastSeenAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  seniorManager   Manager?  @relation("ManagerHierarchy", fields: [seniorManagerId], references: [id])
+  lineManagers    Manager[] @relation("ManagerHierarchy")
+  boards          Board[]
+  reportees       Reportee[]
+  apiKeys         ApiKey[]
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  managerId  String?
+  keyHash    String    @unique
+  name       String
+  sourceType String    // 'unit_manager' | 'organization'
+  sourceId   String
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  manager    Manager?  @relation(fields: [managerId], references: [id])
+}
+
+model Board {
+  id        String   @id @default(uuid())
+  managerId String
+  title     String   @default("My Board")
+  createdAt DateTime @default(now())
+
+  manager   Manager    @relation(fields: [managerId], references: [id])
+  swimlanes Swimlane[]
+}
+
+model Swimlane {
+  id         String   @id @default(uuid())
+  boardId    String
+  type       String   // 'org' | 'unit' | 'team' | 'person'
+  reporteeId String?
+  title      String
+  position   Int      @default(0)
+
+  board      Board     @relation(fields: [boardId], references: [id])
+  reportee   Reportee? @relation(fields: [reporteeId], references: [id])
+  cards      Card[]
+}
+
+model Card {
+  id               String    @id @default(uuid())
+  swimlaneId       String
+  title            String
+  description      String?   @db.Text
+  cardType         String    // 'org' | 'people'
+  status           String    @default("todo")
+  priority         String    @default("medium")
+  reporteeId       String?
+  recurrenceRuleId String?
+  dueDate          DateTime?
+  position         Int       @default(0)
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  // Task Push fields
+  source           String?   // 'self' | 'unit_manager' | 'organization'
+  sourceId         String?
+  sourceMeta       Json?
+  acknowledgedAt   DateTime?
+
+  swimlane         Swimlane        @relation(fields: [swimlaneId], references: [id])
+  reportee         Reportee?       @relation(fields: [reporteeId], references: [id])
+  recurrenceRule   RecurrenceRule? @relation(fields: [recurrenceRuleId], references: [id])
+  notes            CardNote[]
+  actionItems      ActionItem[]
+}
+
+model CardNote {
+  id        String   @id @default(uuid())
+  cardId    String
+  content   String   @db.Text
+  noteType  String   @default("note")
+  createdAt DateTime @default(now())
+
+  card      Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model ActionItem {
+  id          String    @id @default(uuid())
+  cardId      String
+  description String
+  isDone      Boolean   @default(false)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  card        Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+}
+
+model RecurrenceRule {
+  id               String   @id @default(uuid())
+  managerId        String
+  swimlaneId       String
+  frequency        String   // 'weekly' | 'biweekly' | 'monthly' | 'quarterly'
+  dayOfWeek        Int?
+  dayOfMonth       Int?
+  templateTitle    String
+  templatePriority String   @default("medium")
+  nextGenerateAt   DateTime
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  cards            Card[]
+}
+
+model Reportee {
+  id           String    @id @default(uuid())
+  managerId    String
+  name         String
+  email        String?
+  role         String?
+  joinDate     DateTime?
+  last1on1Date DateTime?
+  riskLevel    String    @default("none")
+  createdAt    DateTime  @default(now())
+
+  manager      Manager        @relation(fields: [managerId], references: [id])
+  swimlanes    Swimlane[]
+  cards        Card[]
+  interactions InteractionLog[]
+}
+
+model InteractionLog {
+  id              String   @id @default(uuid())
+  managerId       String
+  reporteeId      String
+  interactionType String
+  occurredAt      DateTime @default(now())
+  notes           String?  @db.Text
+  sentiment       String?
+
+  reportee        Reportee @relation(fields: [reporteeId], references: [id])
+}

@@ -1,0 +1,5 @@
+C:\Users\emanrud\OneDrive - Ericsson\Manju\mWork\GenAI\POCs\kanban_mgr>npx ts-node prisma/seed.ts
+✅ Seed complete!
+   Manager: manju@demo.com / demo123
+   API Key: demo-push-key-12345
+   Manager ID: e23c60db-6c5f-4c36-a15d-1f4f95004c56
