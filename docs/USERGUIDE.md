@@ -138,6 +138,28 @@ This resets the health indicator to green and creates cards in the reportee's sw
 
 Toggle to "Team Dashboard" in the header.
 
+### 🔥 Heatmap
+
+At the top of the Team Dashboard, a color-coded grid gives you instant visibility:
+
+**Line Manager sees:**
+
+| Name | Last 1-on-1 | Open Tasks | Sentiment | Risk |
+|------|-------------|-----------|-----------|------|
+| Rahul S | 🟢 3d | 🟢 2 | 😊 OK | None |
+| Priya M | 🔴 18d | 🟡 5 | 😟 Concern | Medium |
+
+- Green = healthy, Yellow = watch, Red = act now
+- Sentiment shows 😟 Concern if last 3 meetings were all flagged as concern
+
+**Senior Manager sees:**
+
+| Name | Stale Reportees | Open Org/Unit Tasks | Unacknowledged |
+|------|----------------|--------------------|----|
+| Manju R | 🟡 1/5 | 🟢 2 | 🟢 0 |
+
+### Task Lists
+
 **Senior Manager view:** See org/unit tasks across all line managers. Toggle "Show completed" to include done tasks. Click **📤 Push Initiative** to assign tasks.
 
 **Line Manager view:** See all reportees and their active tasks.

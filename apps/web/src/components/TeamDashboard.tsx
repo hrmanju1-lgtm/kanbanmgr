@@ -36,6 +36,11 @@ export default function TeamDashboard({ role }: { role: string | null }) {
     queryFn: () => api.get('/team/line-managers').then((r) => r.data),
   });
 
+  const { data: heatmap } = useQuery({
+    queryKey: ['team-heatmap'],
+    queryFn: () => api.get('/team/heatmap').then((r) => r.data),
+  });
+
   return (
     <div className="px-6 py-4">
       <div className="flex justify-between items-center mb-4">
@@ -50,6 +55,56 @@ export default function TeamDashboard({ role }: { role: string | null }) {
           <button onClick={() => setShowPush(true)} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700">📤 Push Initiative</button>
         )}
       </div>
+
+      {heatmap && heatmap.length > 0 && (
+        <div className="mb-6 bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b">
+            <h3 className="text-sm font-semibold text-gray-700">🔥 Team Heatmap</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-gray-50 text-xs text-gray-500 uppercase">
+                <th className="px-4 py-2 text-left">Name</th>
+                {role === 'senior_manager' ? (
+                  <>
+                    <th className="px-4 py-2 text-center">Stale Reportees</th>
+                    <th className="px-4 py-2 text-center">Open Org/Unit Tasks</th>
+                    <th className="px-4 py-2 text-center">Unacknowledged</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-4 py-2 text-center">Last 1-on-1</th>
+                    <th className="px-4 py-2 text-center">Open Tasks</th>
+                    <th className="px-4 py-2 text-center">Sentiment</th>
+                    <th className="px-4 py-2 text-center">Risk</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {heatmap.map((row: any) => (
+                <tr key={row.name} className="border-b last:border-0">
+                  <td className="px-4 py-2 font-medium text-gray-800">{row.name} {row.role && <span className="text-xs text-gray-400 ml-1">({row.role})</span>}{row.orgUnit && <span className="text-xs text-gray-400 ml-1">({row.orgUnit})</span>}</td>
+                  {role === 'senior_manager' ? (
+                    <>
+                      <td className="px-4 py-2 text-center"><HeatCell value={row.staleReportees} thresholds={[0, 1, 2]} labels={[`${row.staleReportees}/${row.totalReportees}`]} /></td>
+                      <td className="px-4 py-2 text-center"><HeatCell value={row.openOrgUnitTasks} thresholds={[0, 3, 6]} /></td>
+                      <td className="px-4 py-2 text-center"><HeatCell value={row.unacknowledged} thresholds={[0, 1, 3]} /></td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-4 py-2 text-center"><HeatCell value={row.daysSince1on1} thresholds={[7, 14, 21]} labels={[`${row.daysSince1on1}d`]} /></td>
+                      <td className="px-4 py-2 text-center"><HeatCell value={row.openTasks} thresholds={[0, 4, 7]} /></td>
+                      <td className="px-4 py-2 text-center">{row.sentiment === 'concern' ? <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs">😟 Concern</span> : <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs">😊 OK</span>}</td>
+                      <td className="px-4 py-2 text-center">{row.riskLevel === 'high' ? <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs">High</span> : row.riskLevel === 'medium' ? <span className="px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 text-xs">Medium</span> : <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs">None</span>}</td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {overview?.map((lm: any) => (
         <div key={lm.managerId} className="mb-6 bg-white rounded-lg shadow-sm border">
@@ -187,6 +242,12 @@ export default function TeamDashboard({ role }: { role: string | null }) {
       )}
     </div>
   );
+}
+
+function HeatCell({ value, thresholds, labels }: { value: number; thresholds: number[]; labels?: string[] }) {
+  const display = labels?.[0] || String(value);
+  const color = value <= thresholds[0] ? 'bg-green-100 text-green-700' : value <= thresholds[1] ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+  return <span className={`px-2 py-0.5 rounded text-xs font-medium ${color}`}>{display}</span>;
 }
 
 function PushInitiativeModal({ lineManagers, onClose }: { lineManagers: any[]; onClose: () => void }) {

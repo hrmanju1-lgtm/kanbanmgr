@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: managerflow
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    command: sh -c "npx prisma db push && npx ts-node prisma/seed.ts && cd apps/api && npm run dev"
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: "mysql://root:rootpass@db:3306/managerflow"
+      JWT_SECRET: "managerflow-demo-secret"
+      PORT: "4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: .
+    command: sh -c "cd apps/web && npm run dev -- --host"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api

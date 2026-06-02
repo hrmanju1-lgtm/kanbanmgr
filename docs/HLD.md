@@ -50,7 +50,7 @@
 | `/api/cards` | Card CRUD, move, notes, action items, delete |
 | `/api/people` | Reportees, health, interaction logging |
 | `/api/recurrence-rules` | Recurring task CRUD |
-| `/api/team` | Team Dashboard overview, push initiative |
+| `/api/team` | Team Dashboard overview, push initiative, heatmap |
 | `/api/notifications` | Recent pushed cards for bell |
 | `/api/admin` | Org structure CRUD (Senior Managers, Line Managers, Reportees, Org Tree) |
 | `/api/v1/managers/:id/tasks` | External push API (API key auth) |
@@ -115,6 +115,7 @@
 | 1-on-1 logged | UI → POST /api/people/:id/interactions → health resets | User action |
 | Notification poll | Frontend → GET /api/notifications | 5s interval |
 | Today's Focus nudges | Frontend computes from board data (overdue, due soon, unacked, stale, stuck, sentiment) | On board load |
+| Heatmap data | Frontend → GET /api/team/heatmap → role-aware grid | Team Dashboard load |
 | Admin creates manager | POST /api/admin/* → auto-provisions board + swimlanes | Admin action |
 
 ---

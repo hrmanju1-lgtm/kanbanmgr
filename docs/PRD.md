@@ -54,6 +54,7 @@ ManagerFlow is a purpose-built visual workflow dashboard for IT Line Managers wh
 | F14 | Admin Panel | Org structure CRUD with auto-provisioning of boards/swimlanes |
 | F15 | External Push API | REST API for org-level task push + bulk broadcast |
 | F16 | Widgets Bar | Overdue, stale 1-on-1s, org/unit/team counts, unacknowledged |
+| F17 | Manager Heatmap | Visual grid in Team Dashboard: Line Manager sees reportees × (1-on-1, tasks, sentiment, risk); Senior Manager sees line managers × (stale reportees, org/unit tasks, unacknowledged) |
 
 ---
 
@@ -84,6 +85,7 @@ ManagerFlow
 │   │   ├── Kanban Board (4 columns × N swimlanes)
 │   │   └── Card Detail Panel
 │   └── Team Dashboard
+│       ├── 🔥 Heatmap (role-aware visual grid)
 │       ├── Senior Manager: org/unit tasks across line managers
 │       ├── Line Manager: reportee tasks
 │       └── Push Initiative Modal
@@ -122,6 +124,7 @@ ManagerFlow
 - External Push API with bulk broadcast
 - Today's Focus smart nudges (overdue, due soon, unacknowledged, stale reportees, stuck in Waiting, sentiment concern alerts)
 - Sentiment tracking: 3 consecutive "concern" sentiments triggers a nudge
+- Manager Heatmap in Team Dashboard (role-aware: reportee health for LM, manager health for SM)
 - Widgets bar with 6 metrics
 
 **Out of scope:**

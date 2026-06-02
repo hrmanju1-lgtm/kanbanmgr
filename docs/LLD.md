@@ -33,7 +33,7 @@ kanban_mgr/
 │   │       │   ├── cards.ts        # CRUD, move, notes, action items, delete
 │   │       │   ├── people.ts       # Reportees, interactions
 │   │       │   ├── recurrence.ts   # Recurrence rule CRUD
-│   │       │   ├── team-dashboard.ts # Overview, push initiative
+│   │       │   ├── team-dashboard.ts # Overview, push initiative, heatmap
 │   │       │   ├── notifications.ts # Notification polling
 │   │       │   ├── ingestion.ts    # External push API
 │   │       │   └── admin.ts        # Org structure CRUD
@@ -167,6 +167,9 @@ GET  /api/team/overview?showDone=false
   → Line Manager: reportees' cards
 GET  /api/team/line-managers → Line managers under this senior manager
 POST /api/team/push-initiative { title, description?, priority, dueDate, targetManagerIds }
+GET  /api/team/heatmap
+  → Senior Manager: [{ name, orgUnit, staleReportees, totalReportees, openOrgUnitTasks, unacknowledged }]
+  → Line Manager: [{ name, role, daysSince1on1, health, openTasks, riskLevel, sentiment }]
 ```
 
 ### 4.6 Notifications

@@ -158,3 +158,65 @@ teamDashboardRouter.post('/push-initiative', async (req: Request, res: Response)
 
   res.status(201).json({ pushed: created.length, details: created });
 });
+
+// Heatmap data
+teamDashboardRouter.get('/heatmap', async (req: Request, res: Response) => {
+  const managerId = (req as any).managerId;
+  const manager = await prisma.manager.findUnique({ where: { id: managerId } });
+
+  if (manager?.role === 'senior_manager') {
+    // Senior Manager: show line managers' health
+    const lineManagers = await prisma.manager.findMany({
+      where: { seniorManagerId: managerId },
+      include: {
+        reportees: { select: { last1on1Date: true } },
+        boards: { include: { swimlanes: { include: { cards: { where: { status: { not: 'done' } } } } } } },
+      },
+    });
+
+    const result = lineManagers.map(lm => {
+      const allCards = lm.boards.flatMap(b => b.swimlanes.flatMap(s => s.cards));
+      const orgUnitCards = allCards.filter(c => c.source === 'organization' || c.source === 'unit_manager');
+      const unacked = orgUnitCards.filter(c => !c.acknowledgedAt).length;
+      const staleReportees = lm.reportees.filter(r => {
+        const days = r.last1on1Date ? Math.floor((Date.now() - r.last1on1Date.getTime()) / 86400000) : 999;
+        return days > 14;
+      }).length;
+      return {
+        name: lm.name,
+        orgUnit: lm.orgUnit,
+        staleReportees,
+        totalReportees: lm.reportees.length,
+        openOrgUnitTasks: orgUnitCards.length,
+        unacknowledged: unacked,
+      };
+    });
+    return res.json(result);
+  }
+
+  // Line Manager: show reportees' health
+  const reportees = await prisma.reportee.findMany({
+    where: { managerId },
+    include: {
+      cards: { where: { status: { not: 'done' } } },
+      interactions: { orderBy: { occurredAt: 'desc' }, take: 3, select: { sentiment: true } },
+    },
+  });
+
+  const result = reportees.map(r => {
+    const days = r.last1on1Date ? Math.floor((Date.now() - r.last1on1Date.getTime()) / 86400000) : 999;
+    const health = days <= 7 ? 'green' : days <= 14 ? 'yellow' : 'red';
+    const sentiments = r.interactions.map(i => i.sentiment);
+    const sentimentStatus = sentiments.length >= 3 && sentiments.every(s => s === 'concern') ? 'concern' : sentiments[0] || 'none';
+    return {
+      name: r.name,
+      role: r.role,
+      daysSince1on1: days,
+      health,
+      openTasks: r.cards.length,
+      riskLevel: r.riskLevel,
+      sentiment: sentimentStatus,
+    };
+  });
+  res.json(result);
+});
