@@ -34,6 +34,13 @@ app.use('/api/team', authenticateJwt, teamDashboardRouter);
 app.use('/api/notifications', authenticateJwt, notificationsRouter);
 app.use('/api/admin', authenticateJwt, adminRouter);
 
+// Serve React frontend in production
+const frontendPath = path.resolve(__dirname, '../../../apps/web/dist');
+app.use(express.static(frontendPath));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // Start recurrence cron
 startRecurrenceCron();
 
