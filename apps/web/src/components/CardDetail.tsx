@@ -12,7 +12,7 @@ export default function CardDetail({ cardId, onClose }: { cardId: string; onClos
   const [editingDueDate, setEditingDueDate] = useState(false);
   const [dueDate, setDueDate] = useState('');
 
-  const { data: card } = useQuery({
+  const { data: card } = useQuery<any>({
     queryKey: ['card', cardId],
     queryFn: () => api.get(`/cards/${cardId}`).then((r) => r.data),
     onSuccess: (data: any) => { if (data.dueDate) setDueDate(data.dueDate.slice(0, 10)); },
